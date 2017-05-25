@@ -27,3 +27,69 @@ Update the phone
 - an alternative is to use LineageOS
 - my phone is MotoG 2, so I find my setup instructions at https://wiki.lineageos.org/devices/thea/install
 
+- run `adb devices` (get "List of devices attached / DEVICE_ID	device" as response)
+- run `adb reboot bootloader` (device goes to boot menu)
+- run `fastboot devices` (get DEVICE_ID	fastboot as response)
+- run 'fastboot oem device-info' as instructed (bit worrying, got:
+(bootloader) slot-count: not found
+(bootloader) slot-suffixes: not found
+(bootloader) slot-suffixes: not found
+...
+(bootloader) 'device-info' is not a supported oem command
+(bootloader) See 'fastboot oem help'
+
+FAILED (remote failure)
+finished. total time: 0.017s
+
+Start to unlock the device
+- Go to http://motorola-global-portal.custhelp.com/app/standalone/bootloader/unlock-your-device-a
+- Accept
+- Enter Motorola ID (ask for a password reset link)
+- Sign in with Google
+- Get to unlock instructions screen
+- Assume I have the drivers installed
+
+...
+(bootloader) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+(bootloader) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+(bootloader) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+(bootloader) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+(bootloader) XXXXX
+OKAY [  0.176s]
+finished. total time: 0.176s
+
+- Edit to a combined string.
+- Paste to input on Motorola page. Unlocks the form. Great!
+
+Got the email, with the unique ID string.
+- fastboot oem unlock UNIQUE_STRING
+(bootloader) slot-count: not found
+(bootloader) slot-suffixes: not found
+(bootloader) slot-suffixes: not found
+...
+(bootloader) Check 'Allow OEM Unlock' in Developer Options.
+FAILED (remote failure)
+finished. total time: 0.046s
+
+Right. :(
+
+Volume UP, for normal booting.
+
+- Access {} Developer options menu (don't remember how that was enabled) ( go into Settings -> About and find the Build Number and tap on it 7 times to enable developer settings)
+- Select OEM unlocking
+- Enter device PIN
+
+Accept the warning (Device protection features are not enabled when this setting is turned on)
+
+- Run `adb reboot bootloader`
+- Run fastboot oem unlock UNIQUE_STRING
+(bootloader) slot-count: not found
+(bootloader) slot-suffixes: not found
+(bootloader) slot-suffixes: not found
+...
+(bootloader) Unlock code = UNIQUE_STRING
+
+(bootloader) Phone is unlocked successfully!
+OKAY [  1.338s]
+finished. total time: 1.338s
+
