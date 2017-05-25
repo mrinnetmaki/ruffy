@@ -109,3 +109,5 @@ finished. total time: 0.634s
 (plenty of going back and forth, not always clear...)
 
 Finally got LineageOS installed and booting!
+
+Install the app, connect the pump, control! Wow!
