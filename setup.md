@@ -93,3 +93,19 @@ Accept the warning (Device protection features are not enabled when this setting
 OKAY [  1.338s]
 finished. total time: 1.338s
 
+
+fastboot flash recovery twrp-3.1.1-0-thea.img 
+(bootloader) slot-count: not found
+(bootloader) slot-suffixes: not found
+(bootloader) slot-suffixes: not found
+(bootloader) has-slot:recovery: not found
+target reported max download size of 536870912 bytes
+sending 'recovery' (7926 KB)...
+OKAY [  0.300s]
+writing 'recovery'...
+OKAY [  0.334s]
+finished. total time: 0.634s
+
+(plenty of going back and forth, not always clear...)
+
+Finally got LineageOS installed and booting!
