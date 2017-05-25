@@ -16,4 +16,14 @@ Tried running on device
 - Seems to work fine, but nothing happens on the phone
 - Works, when launched from the app icon in the menu. Wrong/no default activity?
 
+Prepared the pump
+- as instructed by the app
+- App: Starting rfcomm to wait for Pump connection
+- Pump: no device found
+
+Update the phone
+- required, as there's a bug in Android bluetooth from 4.2 until the latest versions
+- versions older than 4.2 work OK, I've heard
+- an alternative is to use LineageOS
+- my phone is MotoG 2, so I find my setup instructions at https://wiki.lineageos.org/devices/thea/install
 
