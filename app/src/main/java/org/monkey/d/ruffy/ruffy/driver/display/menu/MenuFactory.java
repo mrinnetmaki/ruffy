@@ -116,7 +116,7 @@ public class MenuFactory {
             if(isSymbol(p,Symbol.LARGE_THERAPIE_SETTINGS))
             {
                 tokens[2].removeFirst();
-                return new Menu(MenuType.THERAPIE_MENU);
+                return new Menu(MenuType.THERAPY_MENU);
             }
 
             if(isSymbol(p,Symbol.LARGE_BLUETOOTH_SETTINGS))
@@ -199,7 +199,102 @@ public class MenuFactory {
                 Pattern p = tokens[1].get(0).getPattern();
             }
         }
+        if(tokens[0].size()>0 && tokens[3].size()>0) {
+            String m = parseString(tokens[0], false);
+            Token t30 = tokens[3].getFirst();
+
+            if(isSymbol(t30.getPattern(),Symbol.CHECK) && m.length()>0)
+                return makeWarning(tokens);
+        }
         return null;
+    }
+
+    private static Menu makeWarning(LinkedList<Token>[] tokens) {
+        Menu m = new Menu(MenuType.WARNING_OR_ERROR);
+        String message = parseString(tokens[0],true);
+        m.setAttribute(MenuAttribute.MESSAGE,message);
+        int stage = 0;
+        int warning = 0;
+        int type = 0;
+        while(tokens[1].size()>0) {
+            Pattern p = tokens[1].removeFirst().getPattern();
+            switch (stage) {
+                case 0:
+                    if(isSymbol(p,Symbol.LARGE_WARNING))
+                    {
+                        type = 1;
+                        stage++;
+                    }
+                    else if(isSymbol(p,Symbol.LARGE_ERROR))
+                    {
+                        type = 2;
+                        stage++;
+                    }
+                    else
+                        return null;
+                    break;
+                case 1:
+                    if(p instanceof CharacterPattern)
+                    {
+                        char w = ((CharacterPattern)p).getCharacter();
+                        if(type == 1 && w == 'W')
+                        {
+                            stage++;
+                        }
+                        else if(type == 2 && w == 'E')
+                        {
+                            stage++;
+                        }
+                        else
+                            return null;
+                    }
+                    else
+                        return null;
+                    break;
+                case 2:
+                    if(p instanceof NumberPattern)
+                    {
+                        warning = ((NumberPattern)p).getNumber();
+                        stage++;
+                    }
+                    else return null;
+                    break;
+                case 3:
+                    if(p instanceof NumberPattern) {
+                        warning *= 10;
+                        warning += ((NumberPattern) p).getNumber();
+                        stage++;
+                    }
+                    else if(isSymbol(p,Symbol.LARGE_STOP))
+                        stage+=2;
+                    else
+                        return null;
+                    break;
+                case 4:
+                    if(isSymbol(p,Symbol.LARGE_STOP))
+                        stage++;
+                    else
+                        return null;
+                    break;
+                default:
+                    return null;
+            }
+        }
+        if(type == 1) {
+            m.setAttribute(MenuAttribute.WARNING, warning);
+        }
+        else if(type == 2) {
+            m.setAttribute(MenuAttribute.ERROR, warning);
+        } else {
+            m.setAttribute(MenuAttribute.ERROR_OR_WARNING, warning);
+        }
+
+        if(isSymbol(tokens[3].getFirst().getPattern(),Symbol.CHECK))
+        {
+            tokens[3].removeFirst();
+            parseString(tokens[3],true);//ignore result
+        }
+        return m;
     }
 
     private static Menu makeBasalSet(LinkedList<Token>[] tokens) {
@@ -510,9 +605,9 @@ public class MenuFactory {
                 int s10 = ((NumberPattern) date.removeFirst()).getNumber();
                 int s1 = ((NumberPattern) date.removeFirst()).getNumber();
                 if(divide)
-                    m.setAttribute(MenuAttribute.DATE, new MenuDATE((s10*10)+s1,(f10*10)+f1));
+                    m.setAttribute(MenuAttribute.DATE, new MenuDate((s10*10)+s1,(f10*10)+f1));
                 else
-                    m.setAttribute(MenuAttribute.DATE, new MenuDATE((f10*10)+f1,(s10*10)+s1));
+                    m.setAttribute(MenuAttribute.DATE, new MenuDate((f10*10)+f1,(s10*10)+s1));
 
             }catch(Exception e)
             {
@@ -524,7 +619,7 @@ public class MenuFactory {
             return null;
 
         stage = 0;
-        boolean lowInsulin = false;
+        int lowInsulin = 0;
         boolean lowBattery= false;
         boolean waranty= true;
         int lockState = 0;
@@ -536,9 +631,9 @@ public class MenuFactory {
                     if (isSymbol(p, Symbol.LOW_BAT)) {
                         lowBattery = true;
                     } else if (isSymbol(p, Symbol.LOW_INSULIN)) {
-                        lowInsulin= true;
-                    } else if (isSymbol(p, Symbol.LOW_INSULIN_ALT)) {
-                        lowInsulin= true;
+                        lowInsulin= 1;
+                    } else if (isSymbol(p, Symbol.NO_INSULIN)) {
+                        lowInsulin= 2;
                     } else if (isSymbol(p, Symbol.LOCK_CLOSED)) {
                         lockState=2;
                     } else if (isSymbol(p, Symbol.LOCK_OPENED)) {
@@ -557,10 +652,9 @@ public class MenuFactory {
             m.setAttribute(MenuAttribute.LOW_BATTERY,new Boolean(true));
         else
             m.setAttribute(MenuAttribute.LOW_BATTERY,new Boolean(false));
-        if(lowInsulin)
-            m.setAttribute(MenuAttribute.LOW_INSULIN,new Boolean(true));
-        else
-            m.setAttribute(MenuAttribute.LOW_INSULIN,new Boolean(false));
+
+        m.setAttribute(MenuAttribute.INSULIN_STATE,lowInsulin);
+
         m.setAttribute(MenuAttribute.WARANTY,new Boolean(waranty));
 
         m.setAttribute(MenuAttribute.LOCK_STATE,new Integer(lockState));
@@ -913,9 +1007,9 @@ public class MenuFactory {
                 int s10 = ((NumberPattern) date.removeFirst()).getNumber();
                 int s1 = ((NumberPattern) date.removeFirst()).getNumber();
                 if(divide)
-                    m.setAttribute(MenuAttribute.DATE, new MenuDATE((s10*10)+s1,(f10*10)+f1));
+                    m.setAttribute(MenuAttribute.DATE, new MenuDate((s10*10)+s1,(f10*10)+f1));
                 else
-                    m.setAttribute(MenuAttribute.DATE, new MenuDATE((f10*10)+f1,(s10*10)+s1));
+                    m.setAttribute(MenuAttribute.DATE, new MenuDate((f10*10)+f1,(s10*10)+s1));
 
             }catch(Exception e)
             {
@@ -1081,9 +1175,9 @@ public class MenuFactory {
                 int s10 = ((NumberPattern) date.removeFirst()).getNumber();
                 int s1 = ((NumberPattern) date.removeFirst()).getNumber();
                 if(divide)
-                    m.setAttribute(MenuAttribute.DATE, new MenuDATE((s10*10)+s1,(f10*10)+f1));
+                    m.setAttribute(MenuAttribute.DATE, new MenuDate((s10*10)+s1,(f10*10)+f1));
                 else
-                    m.setAttribute(MenuAttribute.DATE, new MenuDATE((f10*10)+f1,(s10*10)+s1));
+                    m.setAttribute(MenuAttribute.DATE, new MenuDate((f10*10)+f1,(s10*10)+s1));
 
             }catch(Exception e)
             {
@@ -1219,9 +1313,9 @@ public class MenuFactory {
                 int s10 = ((NumberPattern) date.removeFirst()).getNumber();
                 int s1 = ((NumberPattern) date.removeFirst()).getNumber();
                 if(divide)
-                    m.setAttribute(MenuAttribute.DATE, new MenuDATE((s10*10)+s1,(f10*10)+f1));
+                    m.setAttribute(MenuAttribute.DATE, new MenuDate((s10*10)+s1,(f10*10)+f1));
                 else
-                    m.setAttribute(MenuAttribute.DATE, new MenuDATE((f10*10)+f1,(s10*10)+s1));
+                    m.setAttribute(MenuAttribute.DATE, new MenuDate((f10*10)+f1,(s10*10)+s1));
 
             }catch(Exception e)
             {
@@ -1449,9 +1543,9 @@ public class MenuFactory {
                 int s10 = ((NumberPattern) date.removeFirst()).getNumber();
                 int s1 = ((NumberPattern) date.removeFirst()).getNumber();
                 if(divide)
-                    m.setAttribute(MenuAttribute.DATE, new MenuDATE((s10*10)+s1,(f10*10)+f1));
+                    m.setAttribute(MenuAttribute.DATE, new MenuDate((s10*10)+s1,(f10*10)+f1));
                 else
-                    m.setAttribute(MenuAttribute.DATE, new MenuDATE((f10*10)+f1,(s10*10)+s1));
+                    m.setAttribute(MenuAttribute.DATE, new MenuDate((f10*10)+f1,(s10*10)+s1));
 
             }catch(Exception e)
             {
@@ -1852,8 +1946,8 @@ public class MenuFactory {
         LinkedList<Pattern> number = new LinkedList<>();
 
         int stage = 0;
-        Symbol bolus = null;
 
+        BolusType bt = null;
         //main part
         while (tokens[1].size()>0) {
             Token t = tokens[1].removeFirst();
@@ -1861,13 +1955,13 @@ public class MenuFactory {
             switch (stage) {
                 case 0:
                     if (isSymbol(p, Symbol.LARGE_BOLUS)) {
-                        bolus = Symbol.LARGE_BOLUS;
+                        bt = BolusType.NORMAL;
                         stage++;
                     } else if (isSymbol(p, Symbol.LARGE_MULTIWAVE)) {
-                        bolus = Symbol.LARGE_MULTIWAVE;
+                        bt = BolusType.MULTIWAVE;
                         stage++;
                     } else if (isSymbol(p, Symbol.LARGE_EXTENDED_BOLUS)) {
-                        bolus = Symbol.LARGE_EXTENDED_BOLUS;
+                        bt = BolusType.EXTENDED;
                         stage++;
                     } else if(p instanceof NumberPattern) {
                         number.add(p);
@@ -1892,8 +1986,8 @@ public class MenuFactory {
             }
         }
 
-        if(bolus!=null)
-            m.setAttribute(MenuAttribute.BOLUS_TYPE,bolus.toString().replace("LARGE_",""));
+        if(bt!=null)
+            m.setAttribute(MenuAttribute.BOLUS_TYPE,bt);
         else
             m.setAttribute(MenuAttribute.BOLUS_TYPE,new MenuBlink());
 
@@ -2239,7 +2333,7 @@ public class MenuFactory {
 
         stage = 0;
         number.clear();
-        boolean lowInsulin = false;
+        int lowInsulin = 0;
         boolean lowBattery= false;
         boolean waranty = true;
 
@@ -2259,9 +2353,9 @@ public class MenuFactory {
                     } else if (isSymbol(p, Symbol.LOW_BAT)) {
                         lowBattery = true;
                     } else if (isSymbol(p, Symbol.LOW_INSULIN)) {
-                        lowInsulin= true;
-                    } else if (isSymbol(p, Symbol.LOW_INSULIN_ALT)) {
-                        lowInsulin= true;
+                        lowInsulin= 1;
+                    } else if (isSymbol(p, Symbol.NO_INSULIN)) {
+                        lowInsulin= 2;
                     } else if (isSymbol(p, Symbol.LOCK_CLOSED)) {
                         lockState=2;
                     } else if (isSymbol(p, Symbol.LOCK_OPENED)) {
@@ -2276,9 +2370,9 @@ public class MenuFactory {
                     if (isSymbol(p, Symbol.LOW_BAT)) {
                         lowBattery = true;
                     } else if (isSymbol(p, Symbol.LOW_INSULIN)) {
-                        lowInsulin= true;
-                    } else if (isSymbol(p, Symbol.LOW_INSULIN_ALT)) {
-                        lowInsulin= true;
+                        lowInsulin = 1;
+                    } else if (isSymbol(p, Symbol.NO_INSULIN)) {
+                        lowInsulin= 2;
                     } else if (isSymbol(p, Symbol.LOCK_CLOSED)) {
                         lockState=2;
                     } else if (isSymbol(p, Symbol.LOCK_OPENED)) {
@@ -2295,10 +2389,8 @@ public class MenuFactory {
             m.setAttribute(MenuAttribute.LOW_BATTERY,new Boolean(true));
         else
             m.setAttribute(MenuAttribute.LOW_BATTERY,new Boolean(false));
-        if(lowInsulin)
-            m.setAttribute(MenuAttribute.LOW_INSULIN,new Boolean(true));
-        else
-            m.setAttribute(MenuAttribute.LOW_INSULIN,new Boolean(false));
+
+        m.setAttribute(MenuAttribute.INSULIN_STATE,lowInsulin);
         m.setAttribute(MenuAttribute.WARANTY,new Boolean(waranty));
 
         m.setAttribute(MenuAttribute.LOCK_STATE,new Integer(lockState));
@@ -2332,4 +2424,4 @@ public class MenuFactory {
     private static boolean isSymbol(Pattern p, Symbol symbol) {
         return (p instanceof SymbolPattern) && ((SymbolPattern) p).getSymbol() == symbol;
     }
-    }
+}

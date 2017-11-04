@@ -77,7 +77,6 @@ public class Application {
     }
     private static byte[] service_activate = {16, 0, 0x66, (byte)0x90};
     private static byte[] service_deactivate = {16, 0, 0x69, (byte)0x90};
-    private static byte[] service_deactivate_all = {16, 0, 0x6A, (byte)0x90};
 
     public static void sendAppCommand(Command command, BTConnection btConn){
         ByteBuffer payload = null;
@@ -221,12 +220,6 @@ public class Application {
 
         sendData(payload, true, btConn);
     }
-
-    public static byte NO_KEY				=(byte)0x00;
-    public static byte MENU					=(byte)0x03;
-    public static byte CHECK				=(byte)0x0C;
-    public static byte UP					=(byte)0x30;
-    public static byte DOWN					=(byte)0xC0;
 
     public static short rtSendKey(byte key, boolean changed,short rtSeq, BTConnection btConn)
     {

@@ -1,14 +1,10 @@
 package org.monkey.d.ruffy.ruffy.driver;
 
-import android.util.Log;
-import android.view.View;
-
 import java.nio.ByteBuffer;
 
 public class Display {
 
     private final DisplayUpdater updater;
-    private boolean pixels[][][] = new boolean[4][8][96];
     private int index = -1;
     private CompleteDisplayHandler completeHandler;
     private boolean[] complete = {false,false,false,false};
@@ -20,16 +16,10 @@ public class Display {
     }
 
     public void setCompletDisplayHandler(CompleteDisplayHandler completeHandler) {this.completeHandler = completeHandler;}
-    public void clear()
-    {
-        pixels = new boolean[4][8][96];
-        updater.clear();
-    }
 
     private void update(byte[] rowBytes, boolean quarter[][], int which, int index)
     {
-        pixels[which] = quarter;
-        updater.update(quarter,which);
+        updater.update(rowBytes,which);
         if(this.index==index)
         {
             complete[which]=true;

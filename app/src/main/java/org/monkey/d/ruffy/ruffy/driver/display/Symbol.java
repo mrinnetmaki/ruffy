@@ -13,7 +13,7 @@ public enum Symbol {
     WARNING,
     DIVIDE,
     LOW_INSULIN,
-    LOW_INSULIN_ALT,
+    NO_INSULIN,
     CALENDAR,
     SEPERATOR,
     ARROW,
@@ -57,5 +57,6 @@ public enum Symbol {
     LARGE_MY_DATA,
     LARGE_ALARM_SETTINGS,
     LARGE_CHECK,
+    LARGE_ERROR,
 
 }

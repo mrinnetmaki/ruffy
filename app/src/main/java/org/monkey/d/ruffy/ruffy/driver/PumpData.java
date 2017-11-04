@@ -1,9 +1,13 @@
 package org.monkey.d.ruffy.ruffy.driver;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.RemoteException;
 
 import java.security.InvalidKeyException;
+import java.util.LinkedList;
+import java.util.Set;
 
 /**
  * Created by fishermen21 on 20.05.17.
@@ -11,19 +15,25 @@ import java.security.InvalidKeyException;
 
 public class PumpData {
     private String pumpMac;
-    private BTConnection btConn;
     private Object pump_tf;
     private Object driver_tf;
     private byte address;
     private byte[] nonceTx;
-    private Activity activity;
+    private Context activity;
 
-    public PumpData(Activity activity) {
+    public PumpData(Context activity) {
         this.activity = activity;
         this.nonceTx = new byte[13];
     }
 
-    public static PumpData loadPump(Activity activity,LogHandler handler) {
+    public static boolean isPumpBound(Context activity ) {
+        SharedPreferences prefs = activity.getSharedPreferences("pumpdata", Activity.MODE_PRIVATE);
+        if(prefs==null)
+            return false;
+        return prefs.getString("device",null) != null;
+    }
+
+    public static PumpData loadPump(Context activity, Set<IRTHandler> handlers) {
         PumpData data = new PumpData(activity);
         
         SharedPreferences prefs = activity.getSharedPreferences("pumpdata", Activity.MODE_PRIVATE);
@@ -31,7 +41,16 @@ public class PumpData {
         String pd = prefs.getString("pd",null);
         data.pumpMac = prefs.getString("device",null);
 
-        handler.log("Loading data of Pump "+data.pumpMac);
+        for(IRTHandler handler : new LinkedList<>(handlers))
+        {
+            try
+            {
+                handler.log("Loading data of Pump "+data.pumpMac);
+            }catch(RemoteException e)
+            {
+                handlers.remove(handler);
+            }
+        }
 
         if(data.pumpMac != null)
         {
@@ -45,7 +64,16 @@ public class PumpData {
             } catch(Exception e)
             {
                 e.printStackTrace();
-                handler.fail("unable to load keys!");
+                for(IRTHandler handler : new LinkedList<>(handlers))
+                {
+                    try
+                    {
+                        handler.fail("unable to load keys!");
+                    }catch(RemoteException e1)
+                    {
+                        handlers.remove(handler);
+                    }
+                }
                 return null;
             }
         }
@@ -84,7 +112,7 @@ public class PumpData {
         prefs.edit().putString("nonceTx",Utils.byteArrayToHexString(nonceTx,nonceTx.length)).apply();
     }
 
-    public Activity getActivity() {
+    public Context getActivity() {
         return activity;
     }
 
